@@ -92,7 +92,6 @@ def prepare_compute_eval_metrics(tokenizer):
         result = {key: value for key, value in result.items()}
         prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
         result['gen_len'] = np.mean(prediction_lens)
-        print(decoded_preds)
         return {k: round(v, 4) for k, v in result.items()}
     return compute_eval_metrics
 
