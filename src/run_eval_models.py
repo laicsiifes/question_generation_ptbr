@@ -2,6 +2,7 @@ import warnings
 import torch
 import os
 import pandas as pd
+import json
 
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -26,6 +27,12 @@ def collate(batch_):
         'attention_mask': torch.tensor([x['attention_mask'] for x in batch_])
     }
 
+"""
+    TO DO         
+        Implementar a separação da pergunta e resposta e avaliar individualmente cada
+        Implementar a execução de todos os modelos e salvar em um único csv
+        Incluir no json das predições o id
+"""
 
 if __name__ == '__main__':
 
@@ -161,3 +168,18 @@ if __name__ == '__main__':
     results_file_path = os.path.join(results_dir, f'{model_name}_results.csv')
 
     df_results.to_csv(path_or_buf=results_file_path, index=False)
+
+    json_data = []
+
+    for reference, prediction in zip(all_references, all_predictions):
+        json_data.append(
+            {
+                'reference': reference,
+                'prediction': prediction
+            }
+        )
+
+    json_file_path = os.path.join(results_dir, f'{model_name}_predictions.json')
+
+    with open(file=json_file_path, mode='w', encoding='utf-8') as file:
+        json.dump(json_data, file, indent=4)
