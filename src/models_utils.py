@@ -1,0 +1,74 @@
+import nltk
+import evaluate
+import numpy as np
+
+
+def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
+                        use_answer_input=False, output_with_answer=False):
+    """
+        3 variações
+            1. Apenas contexto e gerar pergunta use_answer = False, output_with_answer = False
+            2. Contexto, resposta e gerar pergunta use_answer = True, output_with_answer = False
+            3. Contexto e gerar pergunta e resposta use_answer = False, output_with_answer = True
+    """
+
+    list_answers = examples['answer']
+    list_question = examples['question']
+
+    list_contexts = examples['context']
+
+    if use_answer_input:
+        input_contexts = [f'CONTEXT: {context}  ANSWER: {answer}'
+                          for context, answer in zip(list_contexts, list_answers)]
+    else:
+        input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
+
+    if output_with_answer:
+        output_questions = [
+            f'CONTEXT: {question}  ANSWER: {answer}'
+            for question, answer in zip(list_question, list_answers)
+        ]
+    else:
+        output_questions = [f'QUESTION: {question}' for question in list_question]
+
+    model_inputs = tokenizer(
+        input_contexts,
+        max_length=context_max_len,
+        truncation=True,
+        padding='max_length'
+    )
+
+    labels = tokenizer(
+        text_target=output_questions,
+        max_length=question_max_len,
+        truncation=True,
+        padding='max_length'
+    )
+
+    labels[labels == 0] = -100
+
+    model_inputs['labels'] = labels['input_ids']
+
+    return model_inputs
+
+
+nltk.download('punkt')
+rouge = evaluate.load('rouge')
+
+
+def prepare_compute_eval_metrics(tokenizer):
+    def compute_eval_metrics(eval_pred):
+        nonlocal tokenizer
+        predictions, labels = eval_pred
+        decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
+        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        decoded_preds = ['\n'.join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
+        decoded_labels = ['\n'.join(nltk.sent_tokenize(label.strip())) for label in decoded_labels]
+        result = rouge.compute(predictions=decoded_preds,
+                               references=decoded_labels, use_stemmer=False)
+        result = {key: value for key, value in result.items()}
+        prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
+        result['gen_len'] = np.mean(prediction_lens)
+        return {k: round(v, 4) for k, v in result.items()}
+    return compute_eval_metrics
