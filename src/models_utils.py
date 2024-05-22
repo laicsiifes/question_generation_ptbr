@@ -18,14 +18,14 @@ def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
     list_contexts = examples['context']
 
     if use_answer_input:
-        input_contexts = [f'CONTEXT: {context} </s> ANSWER: {answer}'
+        input_contexts = [f'CONTEXT: {context}</s>ANSWER: {answer}'
                           for context, answer in zip(list_contexts, list_answers)]
     else:
         input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
 
     if output_with_answer:
         output_questions = [
-            f'QUESTION: {question} </s> ANSWER: {answer}'
+            f'QUESTION: {question}</s>ANSWER: {answer}'
             for question, answer in zip(list_question, list_answers)
         ]
     else:
@@ -70,5 +70,6 @@ def prepare_compute_eval_metrics(tokenizer):
         result = {key: value for key, value in result.items()}
         prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in predictions]
         result['gen_len'] = np.mean(prediction_lens)
+        print(decoded_preds)
         return {k: round(v, 4) for k, v in result.items()}
     return compute_eval_metrics
