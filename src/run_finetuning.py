@@ -1,6 +1,6 @@
+import warnings
 import torch
 import os
-import warnings
 
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq
@@ -13,8 +13,8 @@ warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
 
-    # dataset_name = 'pira'
-    dataset_name = 'squad_pt_v2'
+    dataset_name = 'pira'
+    # dataset_name = 'squad_pt_v2'
 
     model_name = 'ptt5_small'
     # model_name = 'ptt5_base'
@@ -23,22 +23,23 @@ if __name__ == '__main__':
     # model_name = 'flan_t5_base'
     # model_name = 'flan_t5_large'
 
-    num_epochs = 10
-    # num_epochs = 20
+    use_answer_input = True
+    output_with_answer = False
 
-    batch_size = 8
+    num_epochs = 20
 
-    use_fp16 = True
+    batch_size = 16
 
-    use_answer_input = False
-    output_with_answer = True
+    use_fp16 = False
 
     if use_answer_input is True and output_with_answer is True:
         print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
         exit(-1)
 
-    context_max_len = 512
-    question_max_len = 128
+    input_max_len = 512
+    output_max_len = 128
+
+    dataset = None
 
     if dataset_name == 'pira':
         dataset = load_dataset('paulopirozelli/pira')
@@ -57,18 +58,24 @@ if __name__ == '__main__':
     print(f'\nModel: {model_name} -- Num Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
           f'-- Output with answer: {output_with_answer}')
 
+    model_checkpoint = None
+
     if model_name == 'ptt5_small':
         model_checkpoint = 'unicamp-dl/ptt5-small-portuguese-vocab'
     elif model_name == 'ptt5_base':
         model_checkpoint = 'unicamp-dl/ptt5-base-portuguese-vocab'
     elif model_name == 'ptt5_large':
         model_checkpoint = 'unicamp-dl/ptt5-large-portuguese-vocab'
+        use_fp16 = True
+        batch_size = 8
     elif model_name == 'flan_t5_small':
         model_checkpoint = 'google/flan-t5-small'
     elif model_name == 'flan_t5_base':
         model_checkpoint = 'google/flan-t5-base'
     elif model_name == 'flan_t5_large':
         model_checkpoint = 'google/flan-t5-large'
+        use_fp16 = True
+        batch_size = 8
     else:
         print('\nERROR. MODEL OPTION INVALID!')
         exit(-1)
@@ -103,8 +110,8 @@ if __name__ == '__main__':
         batch_size=batch_size,
         fn_kwargs={
             'tokenizer': tokenizer,
-            'context_max_len': context_max_len,
-            'question_max_len': question_max_len,
+            'input_max_len': input_max_len,
+            'output_max_len': output_max_len,
             'use_answer_input': use_answer_input,
             'output_with_answer': output_with_answer
         }
@@ -116,8 +123,8 @@ if __name__ == '__main__':
         batch_size=batch_size,
         fn_kwargs={
             'tokenizer': tokenizer,
-            'context_max_len': context_max_len,
-            'question_max_len': question_max_len,
+            'input_max_len': input_max_len,
+            'output_max_len': output_max_len,
             'use_answer_input': use_answer_input,
             'output_with_answer': output_with_answer
         }

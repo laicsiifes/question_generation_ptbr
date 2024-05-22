@@ -3,7 +3,7 @@ import evaluate
 import numpy as np
 
 
-def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
+def preprocess_function(examples, tokenizer, input_max_len, output_max_len,
                         use_answer_input=False, output_with_answer=False):
     """
         3 variações
@@ -33,14 +33,14 @@ def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
 
     model_inputs = tokenizer(
         input_contexts,
-        max_length=context_max_len,
+        max_length=input_max_len,
         truncation=True,
         padding='max_length'
     )
 
     labels = tokenizer(
         text_target=output_questions,
-        max_length=question_max_len,
+        max_length=output_max_len,
         truncation=True,
         padding='max_length'
     )
@@ -48,6 +48,28 @@ def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
     labels[labels == 0] = -100
 
     model_inputs['labels'] = labels['input_ids']
+
+    return model_inputs
+
+
+def encode_test_batch(examples, tokenizer, input_max_len: int, use_answer_input: bool = False):
+
+    list_answers = examples['answer']
+
+    list_contexts = examples['context']
+
+    if use_answer_input:
+        input_contexts = [f'CONTEXT: {context}</s>ANSWER: {answer}'
+                          for context, answer in zip(list_contexts, list_answers)]
+    else:
+        input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
+
+    model_inputs = tokenizer(
+        input_contexts,
+        max_length=input_max_len,
+        truncation=True,
+        padding='max_length'
+    )
 
     return model_inputs
 
@@ -73,3 +95,16 @@ def prepare_compute_eval_metrics(tokenizer):
         print(decoded_preds)
         return {k: round(v, 4) for k, v in result.items()}
     return compute_eval_metrics
+
+
+def clean_predictions(list_predictions: list, output_with_answer: bool = False) -> list:
+
+    new_predictions = []
+
+    for prediction in list_predictions:
+
+        prediction = prediction.replace('QUESTION:', '').strip()
+
+        new_predictions.append(prediction)
+
+    return new_predictions
