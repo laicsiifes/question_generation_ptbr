@@ -16,8 +16,8 @@ if __name__ == '__main__':
     dataset_name = 'pira'
     # dataset_name = 'squad_pt_v2'
 
-    model_name = 'ptt5_small'
-    # model_name = 'ptt5_base'
+    # model_name = 'ptt5_small'
+    model_name = 'ptt5_base'
     # model_name = 'ptt5_large'
     # model_name = 'flan_t5_small'
     # model_name = 'flan_t5_base'
@@ -26,12 +26,16 @@ if __name__ == '__main__':
     num_epochs = 10
     # num_epochs = 20
 
-    batch_size = 16
+    batch_size = 8
 
-    use_fp16 = False
+    use_fp16 = True
 
-    use_answer_input = True
-    output_with_answer = False
+    use_answer_input = False
+    output_with_answer = True
+
+    if use_answer_input is True and output_with_answer is True:
+        print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
+        exit(-1)
 
     context_max_len = 512
     question_max_len = 128
@@ -78,8 +82,8 @@ if __name__ == '__main__':
 
     model.to(device)
 
-    input_config = 'input_answer' if use_answer_input else 'input_no_answer'
-    output_config = 'output_answer' if output_with_answer else 'output_no_answer'
+    input_config = 'input_ctx_ans' if use_answer_input else 'input_context'
+    output_config = 'output_quest_answer' if output_with_answer else 'output_question'
 
     models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
 

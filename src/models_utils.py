@@ -18,14 +18,14 @@ def preprocess_function(examples, tokenizer, context_max_len, question_max_len,
     list_contexts = examples['context']
 
     if use_answer_input:
-        input_contexts = [f'CONTEXT: {context}  ANSWER: {answer}'
+        input_contexts = [f'CONTEXT: {context} </s> ANSWER: {answer}'
                           for context, answer in zip(list_contexts, list_answers)]
     else:
         input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
 
     if output_with_answer:
         output_questions = [
-            f'CONTEXT: {question}  ANSWER: {answer}'
+            f'QUESTION: {question} </s> ANSWER: {answer}'
             for question, answer in zip(list_question, list_answers)
         ]
     else:
