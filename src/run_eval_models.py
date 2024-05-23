@@ -16,10 +16,8 @@ warnings.filterwarnings('ignore')
 
 
 def collate(batch_):
-    labels_with_answer = []
-    for x in batch_:
-        labels_with_answer.append(f"question: {x['question']} answer: {x['answer']}")
     return {
+        'id': [x['id_qa'] for x in batch_],
         'original_question': [x['question'] for x in batch_],
         'original_answer': [x['answer'] for x in batch_],
         'labels_with_answer': [f"question: {x['question']} answer: {x['answer']}" for x in batch_],
@@ -29,9 +27,8 @@ def collate(batch_):
 
 """
     TO DO         
-        Implementar a separação da pergunta e resposta e avaliar individualmente cada
-        Implementar a execução de todos os modelos e salvar em um único csv
-        Incluir no json das predições o id
+        Implementar a separação da pergunta e resposta e avaliar individualmente cada.
+        Ver casos dos exemplos com respostas None no corpus
 """
 
 if __name__ == '__main__':
@@ -39,12 +36,14 @@ if __name__ == '__main__':
     dataset_name = 'pira'
     # dataset_name = 'squad_pt_v2'
 
-    model_name = 'ptt5_small'
-    # model_name = 'ptt5_base'
-    # model_name = 'ptt5_large'
-    # model_name = 'flan_t5_small'
-    # model_name = 'flan_t5_base'
-    # model_name = 'flan_t5_large'
+    list_models = [
+        'ptt5_small',
+        'ptt5_base',
+        'ptt5_large',
+        'flan_t5_small',
+        'flan_t5_base',
+        'flan_t5_large'
+    ]
 
     num_epochs = 20
 
@@ -53,7 +52,7 @@ if __name__ == '__main__':
 
     batch_size = 16
 
-    use_answer_input = False
+    use_answer_input = True
     output_with_answer = False
 
     if use_answer_input is True and output_with_answer is True:
@@ -76,7 +75,7 @@ if __name__ == '__main__':
         print('\nERROR. DATASET NAME OPTION INVALID!')
         exit(-1)
 
-    print(f'\nModel: {model_name} -- Num Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
+    print(f'\nNum Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
           f'-- Output with answer: {output_with_answer}')
 
     test_dataset = dataset['test']
@@ -92,94 +91,97 @@ if __name__ == '__main__':
     input_config = 'in_ctx_ans' if use_answer_input else 'in_ctx'
     output_config = 'out_question_answer' if output_with_answer else 'out_question'
 
-    models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
-
-    best_model_dir = models_training_dir = os.path.join(models_dir, 'best_model')
-
-    results_dir = f'../data/results/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
+    results_dir = f'../data/results/{dataset_name}/{input_config}_{output_config}/{num_epochs}'
 
     os.makedirs(results_dir, exist_ok=True)
-
-    print(f'\nBest Model Path: {best_model_dir}')
-
-    if not os.path.exists(best_model_dir):
-        print(f'ERROR. {best_model_dir} NOT FOUND!')
-        exit(-1)
-
-    tokenizer = AutoTokenizer.from_pretrained(best_model_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(best_model_dir)
-
-    model.to(device)
-
-    tokenized_test_dataset = test_dataset.map(
-        encode_test_batch,
-        batched=True,
-        batch_size=batch_size,
-        fn_kwargs={
-            'tokenizer': tokenizer,
-            'input_max_len': input_max_len,
-            'use_answer_input': use_answer_input
-        }
-    )
-
-    batched_ds = DataLoader(tokenized_test_dataset, batch_size=batch_size, collate_fn=collate)
-
-    all_references = []
-    all_predictions = []
-
-    print('\nTesting Model\n')
-
-    for batch in tqdm(batched_ds):
-
-        predict_logits = model.generate(
-            input_ids=batch['input_ids'].to(device),
-            attention_mask=batch['attention_mask'].to(device),
-            num_beams=5, min_length=10,
-            max_length=output_max_len, num_return_sequences=1, no_repeat_ngram_size=3,
-            remove_invalid_values=True
-        )
-
-        decoded_predict = tokenizer.batch_decode(predict_logits, skip_special_tokens=True,
-                                                 clean_up_tokenization_spaces=True)
-
-        decoded_predict = clean_predictions(decoded_predict)
-
-        all_predictions.extend(decoded_predict)
-
-        if output_with_answer:
-            pass
-        else:
-            all_references.extend(batch['original_question'])
-
-    bleu_score = compute_bleu(all_references, all_predictions)
-
-    meteor_score = compute_meteor(all_references, all_predictions)
-
-    rouge_scores = compute_rouge(all_references, all_predictions)
-
-    bert_scores = compute_bertscore(all_references, all_predictions)
 
     df_results = pd.DataFrame(
         columns=['Model', 'Rouge-1 F1', 'Rouge-2 F1', 'RougeL F1', 'BertScore F1', 'BLEU', 'METEOR'])
 
-    df_results.loc[len(df_results)] = [model_name, rouge_scores['rouge1'], rouge_scores['rouge2'],
-                                       rouge_scores['rougeL'], bert_scores['f1_score'], bleu_score, meteor_score]
+    for model_name in list_models:
 
-    results_file_path = os.path.join(results_dir, f'{model_name}_results.csv')
+        models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
 
-    df_results.to_csv(path_or_buf=results_file_path, index=False)
+        best_model_dir = models_training_dir = os.path.join(models_dir, 'best_model')
 
-    json_data = []
+        print(f'\nModel: {model_name} -- Model Path: {best_model_dir}')
 
-    for reference, prediction in zip(all_references, all_predictions):
-        json_data.append(
-            {
-                'reference': reference,
-                'prediction': prediction
+        if not os.path.exists(best_model_dir):
+            continue
+
+        tokenizer = AutoTokenizer.from_pretrained(best_model_dir)
+        model = AutoModelForSeq2SeqLM.from_pretrained(best_model_dir)
+
+        model.to(device)
+
+        print('\nTesting Model\n')
+
+        tokenized_test_dataset = test_dataset.map(
+            encode_test_batch,
+            batched=True,
+            batch_size=batch_size,
+            fn_kwargs={
+                'tokenizer': tokenizer,
+                'input_max_len': input_max_len,
+                'use_answer_input': use_answer_input
             }
         )
 
-    json_file_path = os.path.join(results_dir, f'{model_name}_predictions.json')
+        batched_ds = DataLoader(tokenized_test_dataset, batch_size=batch_size, collate_fn=collate)
 
-    with open(file=json_file_path, mode='w', encoding='utf-8') as file:
-        json.dump(json_data, file, indent=4)
+        all_examples = []
+
+        for batch in tqdm(batched_ds):
+
+            predict_logits = model.generate(
+                input_ids=batch['input_ids'].to(device),
+                attention_mask=batch['attention_mask'].to(device),
+                num_beams=5, min_length=10,
+                max_length=output_max_len, num_return_sequences=1, no_repeat_ngram_size=3,
+                remove_invalid_values=True
+            )
+
+            decoded_predictions = tokenizer.batch_decode(predict_logits, skip_special_tokens=True,
+                                                         clean_up_tokenization_spaces=True)
+
+            generated_questions, generated_answers = clean_predictions(decoded_predictions, output_with_answer)
+
+            if output_with_answer:
+                pass
+
+            for id_example, reference_question, reference_answer, generated_question, generated_answer in (
+                    zip(batch['id'], batch['original_question'], batch['original_answer'], generated_questions,
+                        generated_answers)):
+                generated_answer = generated_answer if len(generated_answer) > 0 else None
+                all_examples.append(
+                    {
+                        'id': id_example,
+                        'reference_question': reference_question,
+                        'reference_answer': reference_answer,
+                        'generated_question': generated_question,
+                        'generated_answer': generated_answer
+                    }
+                )
+
+        all_predictions = [e['reference_question'] for e in all_examples]
+        all_references = [e['generated_question'] for e in all_examples]
+
+        bleu_score = compute_bleu(all_references, all_predictions)
+
+        meteor_score = compute_meteor(all_references, all_predictions)
+
+        rouge_scores = compute_rouge(all_references, all_predictions)
+
+        bert_scores = compute_bertscore(all_references, all_predictions)
+
+        df_results.loc[len(df_results)] = [model_name, rouge_scores['rouge1'], rouge_scores['rouge2'],
+                                           rouge_scores['rougeL'], bert_scores['f1_score'], bleu_score, meteor_score]
+
+        results_file_path = os.path.join(results_dir, f'results.csv')
+
+        df_results.to_csv(path_or_buf=results_file_path, index=False)
+
+        json_file_path = os.path.join(results_dir, f'{model_name}_predictions.json')
+
+        with open(file=json_file_path, mode='w', encoding='utf-8') as file:
+            json.dump(all_examples, file, indent=4)

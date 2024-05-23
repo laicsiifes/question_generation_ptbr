@@ -79,7 +79,7 @@ rouge = evaluate.load('rouge')
 
 
 def prepare_compute_eval_metrics(tokenizer):
-    def compute_eval_metrics(eval_pred):
+    def compute_eval_metrics(eval_pred) -> dict:
         nonlocal tokenizer
         predictions, labels = eval_pred
         decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
@@ -96,14 +96,14 @@ def prepare_compute_eval_metrics(tokenizer):
     return compute_eval_metrics
 
 
-def clean_predictions(list_predictions: list, output_with_answer: bool = False) -> list:
-
-    new_predictions = []
-
-    for prediction in list_predictions:
-
-        prediction = prediction.replace('QUESTION:', '').strip()
-
-        new_predictions.append(prediction)
-
-    return new_predictions
+def clean_predictions(list_predictions: list, output_with_answer: bool = False) -> tuple[list[str], list[str]]:
+    list_questions = []
+    list_answers = []
+    if output_with_answer:
+        pass
+    else:
+        for prediction in list_predictions:
+            prediction = prediction.replace('QUESTION:', '').strip()
+            list_questions.append(prediction)
+            list_answers.append('')
+    return list_questions, list_answers

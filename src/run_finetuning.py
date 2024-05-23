@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # model_name = 'flan_t5_base'
     # model_name = 'flan_t5_large'
 
-    use_answer_input = True
+    use_answer_input = False
     output_with_answer = False
 
     num_epochs = 20
@@ -37,7 +37,11 @@ if __name__ == '__main__':
         exit(-1)
 
     input_max_len = 512
-    output_max_len = 128
+
+    output_max_len = 40
+
+    if output_with_answer:
+        output_max_len = 120
 
     dataset = None
 
