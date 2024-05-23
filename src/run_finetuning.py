@@ -16,10 +16,10 @@ if __name__ == '__main__':
     dataset_name = 'pira'
     # dataset_name = 'squad_pt_v2'
 
-    model_name = 'ptt5_small'
+    # model_name = 'ptt5_small'
     # model_name = 'ptt5_base'
     # model_name = 'ptt5_large'
-    # model_name = 'flan_t5_small'
+    model_name = 'flan_t5_small'
     # model_name = 'flan_t5_base'
     # model_name = 'flan_t5_large'
 

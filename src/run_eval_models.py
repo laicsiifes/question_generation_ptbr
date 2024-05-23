@@ -25,6 +25,7 @@ def collate(batch_):
         'attention_mask': torch.tensor([x['attention_mask'] for x in batch_])
     }
 
+
 """
     TO DO         
         Implementar a separação da pergunta e resposta e avaliar individualmente cada.
@@ -52,7 +53,7 @@ if __name__ == '__main__':
 
     batch_size = 16
 
-    use_answer_input = True
+    use_answer_input = False
     output_with_answer = False
 
     if use_answer_input is True and output_with_answer is True:
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         if not os.path.exists(best_model_dir):
             continue
 
-        tokenizer = AutoTokenizer.from_pretrained(best_model_dir)
+        tokenizer = AutoTokenizer.from_pretrained(best_model_dir, local_files_only=True, use_fast=False)
         model = AutoModelForSeq2SeqLM.from_pretrained(best_model_dir)
 
         model.to(device)
