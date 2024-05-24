@@ -13,8 +13,8 @@ warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
 
-    # dataset_name = 'pira'
-    dataset_name = 'squad_pt_v2'
+    dataset_name = 'pira'
+    # dataset_name = 'squad_pt_v2'
 
     model_name = 'ptt5_small'
     # model_name = 'ptt5_base'
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # model_name = 'flan_t5_large'
 
     use_answer_input = False
-    output_with_answer = True
+    output_with_answer = False
 
     num_epochs = 2
 
