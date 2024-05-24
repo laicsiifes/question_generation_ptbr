@@ -6,10 +6,10 @@ import json
 
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from src.models_utils import encode_test_batch, clean_predictions
+from src.models_utils import encode_test_batch, convert_predictions
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from src.evaluation_measures import compute_bleu, compute_bertscore, compute_meteor, compute_rouge
+from src.evaluation_measures import compute_eval_metrics
 
 
 warnings.filterwarnings('ignore')
@@ -46,15 +46,13 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
-    num_epochs = 20
-
     input_max_len = 512
     output_max_len = 128
 
     batch_size = 16
 
     use_answer_input = False
-    output_with_answer = False
+    output_with_answer = True
 
     if use_answer_input is True and output_with_answer is True:
         print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
@@ -76,8 +74,9 @@ if __name__ == '__main__':
         print('\nERROR. DATASET NAME OPTION INVALID!')
         exit(-1)
 
-    print(f'\nNum Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
-          f'-- Output with answer: {output_with_answer}')
+    dataset = dataset.filter(lambda example: example['answer'] is not None and len(example['answer'].strip()) >= 1)
+
+    print(f'\nUse Input Answer: {use_answer_input} -- Output with answer: {output_with_answer}')
 
     test_dataset = dataset['test']
 
@@ -92,16 +91,21 @@ if __name__ == '__main__':
     input_config = 'in_ctx_ans' if use_answer_input else 'in_ctx'
     output_config = 'out_question_answer' if output_with_answer else 'out_question'
 
-    results_dir = f'../data/results/{dataset_name}/{input_config}_{output_config}/{num_epochs}'
+    results_dir = f'../data/results/{dataset_name}/{input_config}_{output_config}'
 
     os.makedirs(results_dir, exist_ok=True)
 
-    df_results = pd.DataFrame(
-        columns=['Model', 'Rouge-1 F1', 'Rouge-2 F1', 'RougeL F1', 'BertScore F1', 'BLEU', 'METEOR'])
+    df_results_questions = pd.DataFrame(
+        columns=['Model', 'Rouge-1 F1', 'Rouge-2 F1', 'RougeL F1', 'BertScore F1', 'BLEU', 'METEOR']
+    )
+
+    df_results_answers = pd.DataFrame(
+        columns=['Model', 'Rouge-1 F1', 'Rouge-2 F1', 'RougeL F1', 'BertScore F1', 'BLEU', 'METEOR']
+    )
 
     for model_name in list_models:
 
-        models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
+        models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/'
 
         best_model_dir = models_training_dir = os.path.join(models_dir, 'best_model')
 
@@ -145,15 +149,11 @@ if __name__ == '__main__':
             decoded_predictions = tokenizer.batch_decode(predict_logits, skip_special_tokens=True,
                                                          clean_up_tokenization_spaces=True)
 
-            generated_questions, generated_answers = clean_predictions(decoded_predictions, output_with_answer)
-
-            if output_with_answer:
-                pass
+            generated_questions, generated_answers = convert_predictions(decoded_predictions)
 
             for id_example, reference_question, reference_answer, generated_question, generated_answer in (
                     zip(batch['id'], batch['original_question'], batch['original_answer'], generated_questions,
                         generated_answers)):
-                generated_answer = generated_answer if len(generated_answer) > 0 else None
                 all_examples.append(
                     {
                         'id': id_example,
@@ -164,23 +164,44 @@ if __name__ == '__main__':
                     }
                 )
 
-        all_predictions = [e['reference_question'] for e in all_examples]
-        all_references = [e['generated_question'] for e in all_examples]
+        all_predictions_questions = [e['reference_question'] for e in all_examples]
+        all_references_questions = [e['generated_question'] for e in all_examples]
 
-        bleu_score = compute_bleu(all_references, all_predictions)
+        dict_results_questions = compute_eval_metrics(all_predictions_questions, all_references_questions)
 
-        meteor_score = compute_meteor(all_references, all_predictions)
+        df_results_questions.loc[len(df_results_questions)] = [
+            model_name,
+            dict_results_questions['rouge1'],
+            dict_results_questions['rouge2'],
+            dict_results_questions['rougeL'],
+            dict_results_questions['bert_score_f1'],
+            dict_results_questions['bleu'],
+            dict_results_questions['meteor']
+        ]
 
-        rouge_scores = compute_rouge(all_references, all_predictions)
+        if output_with_answer:
 
-        bert_scores = compute_bertscore(all_references, all_predictions)
+            all_predictions_answers = [e['reference_answer'] for e in all_examples]
+            all_references_answers = [e['generated_answer'] for e in all_examples]
 
-        df_results.loc[len(df_results)] = [model_name, rouge_scores['rouge1'], rouge_scores['rouge2'],
-                                           rouge_scores['rougeL'], bert_scores['f1_score'], bleu_score, meteor_score]
+            dict_results_answers = compute_eval_metrics(all_predictions_answers, all_references_answers)
 
-        results_file_path = os.path.join(results_dir, f'results.csv')
+            df_results_answers.loc[len(df_results_answers)] = [
+                model_name,
+                dict_results_answers['rouge1'],
+                dict_results_answers['rouge2'],
+                dict_results_answers['rougeL'],
+                dict_results_answers['bert_score_f1'],
+                dict_results_answers['bleu'],
+                dict_results_answers['meteor']
+            ]
 
-        df_results.to_csv(path_or_buf=results_file_path, index=False)
+        results_file_path = os.path.join(results_dir, f'results_questions.csv')
+        df_results_questions.to_csv(path_or_buf=results_file_path, index=False)
+
+        if output_with_answer:
+            results_file_path = os.path.join(results_dir, f'results_answers.csv')
+            df_results_answers.to_csv(path_or_buf=results_file_path, index=False)
 
         json_file_path = os.path.join(results_dir, f'{model_name}_predictions.json')
 

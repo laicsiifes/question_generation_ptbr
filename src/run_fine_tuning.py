@@ -17,14 +17,14 @@ if __name__ == '__main__':
     # dataset_name = 'squad_pt_v2'
 
     # model_name = 'ptt5_small'
-    # model_name = 'ptt5_base'
+    model_name = 'ptt5_base'
     # model_name = 'ptt5_large'
-    model_name = 'flan_t5_small'
+    # model_name = 'flan_t5_small'
     # model_name = 'flan_t5_base'
     # model_name = 'flan_t5_large'
 
     use_answer_input = False
-    output_with_answer = False
+    output_with_answer = True
 
     num_epochs = 20
 
@@ -58,6 +58,8 @@ if __name__ == '__main__':
     else:
         print('\nERROR. DATASET NAME OPTION INVALID!')
         exit(-1)
+
+    dataset = dataset.filter(lambda example: example['answer'] is not None and len(example['answer'].strip()) >= 1)
 
     print(f'\nModel: {model_name} -- Num Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
           f'-- Output with answer: {output_with_answer}')
@@ -96,7 +98,7 @@ if __name__ == '__main__':
     input_config = 'in_ctx_ans' if use_answer_input else 'in_ctx'
     output_config = 'out_question_answer' if output_with_answer else 'out_question'
 
-    models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/{num_epochs}'
+    models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/'
 
     os.makedirs(models_dir, exist_ok=True)
 

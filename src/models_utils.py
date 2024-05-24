@@ -18,14 +18,14 @@ def preprocess_function(examples, tokenizer, input_max_len, output_max_len,
     list_contexts = examples['context']
 
     if use_answer_input:
-        input_contexts = [f'CONTEXT: {context}</s>ANSWER: {answer}'
+        input_contexts = [f'CONTEXT: {context}  ANSWER: {answer}'
                           for context, answer in zip(list_contexts, list_answers)]
     else:
         input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
 
     if output_with_answer:
         output_questions = [
-            f'QUESTION: {question}</s>ANSWER: {answer}'
+            f'QUESTION: {question}  ANSWER: {answer}'
             for question, answer in zip(list_question, list_answers)
         ]
     else:
@@ -96,14 +96,16 @@ def prepare_compute_eval_metrics(tokenizer):
     return compute_eval_metrics
 
 
-def clean_predictions(list_predictions: list, output_with_answer: bool = False) -> tuple[list[str], list[str]]:
+def convert_predictions(list_predictions: list) -> tuple[list[str], list[str]]:
     list_questions = []
     list_answers = []
-    if output_with_answer:
-        pass
-    else:
-        for prediction in list_predictions:
-            prediction = prediction.replace('QUESTION:', '').strip()
-            list_questions.append(prediction)
-            list_answers.append('')
+    for prediction in list_predictions:
+        prediction = prediction.replace('\n', ' ')
+        fragments = prediction.split('ANSWER:')
+        question = fragments[0].replace('QUESTION:', '').strip()
+        answer = ''
+        if len(fragments) == 2:
+            answer = fragments[1].replace('ANSWER:', '').strip()
+        list_questions.append(question)
+        list_answers.append(answer)
     return list_questions, list_answers
