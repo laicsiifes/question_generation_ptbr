@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 
 def collate(batch_):
     return {
-        'id': [x['id_qa'] for x in batch_],
+        'id': [x['id'] for x in batch_],
         'original_question': [x['question'] for x in batch_],
         'original_answer': [x['answer'] for x in batch_],
         'labels_with_answer': [f"question: {x['question']} answer: {x['answer']}" for x in batch_],
@@ -46,13 +46,17 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
+    use_answer_input = False
+    output_with_answer = False
+
     input_max_len = 512
-    output_max_len = 128
 
     batch_size = 16
 
-    use_answer_input = False
-    output_with_answer = True
+    output_max_len = 40
+
+    if output_with_answer:
+        output_max_len = 120
 
     if use_answer_input is True and output_with_answer is True:
         print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
@@ -68,6 +72,8 @@ if __name__ == '__main__':
                                         new_column_name='question')
         dataset = dataset.rename_column(original_column_name='answer_pt_validate',
                                         new_column_name='answer')
+        dataset = dataset.rename_column(original_column_name='id_qa',
+                                        new_column_name='id')
     elif dataset_name == 'squad_pt_v2':
         dataset = load_dataset('tiagofvb/squad2-pt-br-no-impossible-questions')
     else:

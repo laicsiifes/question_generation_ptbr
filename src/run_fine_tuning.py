@@ -17,16 +17,16 @@ if __name__ == '__main__':
     # dataset_name = 'squad_pt_v2'
 
     model_name = 'ptt5_small'
-    # model_name = 'ptt5_base'
-    # model_name = 'ptt5_large'
     # model_name = 'flan_t5_small'
+    # model_name = 'ptt5_base'
     # model_name = 'flan_t5_base'
+    # model_name = 'ptt5_large'
     # model_name = 'flan_t5_large'
 
-    use_answer_input = False
+    use_answer_input = True
     output_with_answer = False
 
-    num_epochs = 2
+    num_epochs = 20
 
     batch_size = 16
 
