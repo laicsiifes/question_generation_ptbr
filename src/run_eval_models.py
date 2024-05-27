@@ -47,7 +47,7 @@ if __name__ == '__main__':
     ]
 
     use_answer_input = False
-    output_with_answer = False
+    output_with_answer = True
 
     input_max_len = 512
 
@@ -82,7 +82,8 @@ if __name__ == '__main__':
 
     dataset = dataset.filter(lambda example: example['answer'] is not None and len(example['answer'].strip()) >= 1)
 
-    print(f'\nUse Input Answer: {use_answer_input} -- Output with answer: {output_with_answer}')
+    print(f'\nUse Input Answer: {use_answer_input} -- Output with answer: {output_with_answer} '
+          f'-- Output Max Len: {output_max_len}')
 
     test_dataset = dataset['test']
 
@@ -157,14 +158,15 @@ if __name__ == '__main__':
 
             generated_questions, generated_answers = convert_predictions(decoded_predictions)
 
-            for id_example, reference_question, reference_answer, generated_question, generated_answer in (
-                    zip(batch['id'], batch['original_question'], batch['original_answer'], generated_questions,
-                        generated_answers)):
+            for (id_example, reference_question, reference_answer, generated_prediction, generated_question,
+                 generated_answer) in (zip(batch['id'], batch['original_question'], batch['original_answer'],
+                                           decoded_predictions, generated_questions, generated_answers)):
                 all_examples.append(
                     {
                         'id': id_example,
                         'reference_question': reference_question,
                         'reference_answer': reference_answer,
+                        'generated_prediction': generated_prediction,
                         'generated_question': generated_question,
                         'generated_answer': generated_answer
                     }
