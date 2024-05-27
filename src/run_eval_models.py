@@ -46,8 +46,8 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
-    use_answer_input = False
-    output_with_answer = True
+    use_answer_input = True
+    output_with_answer = False
 
     input_max_len = 512
 

@@ -17,13 +17,13 @@ if __name__ == '__main__':
     # dataset_name = 'squad_pt_v2'
 
     # model_name = 'ptt5_small'
-    # model_name = 'flan_t5_small'
+    model_name = 'flan_t5_small'
     # model_name = 'ptt5_base'
     # model_name = 'flan_t5_base'
-    model_name = 'ptt5_large'
+    # model_name = 'ptt5_large'
     # model_name = 'flan_t5_large'
 
-    use_answer_input = False
+    use_answer_input = True
     output_with_answer = False
 
     num_epochs = 20
@@ -42,8 +42,6 @@ if __name__ == '__main__':
 
     if output_with_answer:
         output_max_len = 120
-        if model_name == 'flan_t5_base':
-            batch_size = 8
 
     dataset = None
 
@@ -63,9 +61,6 @@ if __name__ == '__main__':
 
     dataset = dataset.filter(lambda example: example['answer'] is not None and len(example['answer'].strip()) >= 1)
 
-    print(f'\nModel: {model_name} -- Num Epochs: {num_epochs} -- Use Input Answer: {use_answer_input} '
-          f'-- Output with answer: {output_with_answer} -- Output Max Len: {output_max_len}')
-
     model_checkpoint = None
 
     if model_name == 'ptt5_small':
@@ -74,17 +69,30 @@ if __name__ == '__main__':
         model_checkpoint = 'unicamp-dl/ptt5-base-portuguese-vocab'
     elif model_name == 'ptt5_large':
         model_checkpoint = 'unicamp-dl/ptt5-large-portuguese-vocab'
-        batch_size = 4
+        if output_with_answer:
+            batch_size = 4
+        else:
+            batch_size = 4
     elif model_name == 'flan_t5_small':
         model_checkpoint = 'google/flan-t5-small'
     elif model_name == 'flan_t5_base':
         model_checkpoint = 'google/flan-t5-base'
+        if output_with_answer:
+            batch_size = 8
     elif model_name == 'flan_t5_large':
         model_checkpoint = 'google/flan-t5-large'
-        batch_size = 4
+        if output_with_answer:
+            batch_size = 4
+        else:
+            batch_size = 4
     else:
         print('\nERROR. MODEL OPTION INVALID!')
         exit(-1)
+
+    print(f'\nModel: {model_name} -- Num Epochs: {num_epochs} -- Batch size: {batch_size}')
+
+    print(f'\nUse Input Answer: {use_answer_input} -- Output with answer: {output_with_answer} -- '
+          f'Output Max Len: {output_max_len}')
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

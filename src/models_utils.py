@@ -17,19 +17,25 @@ def preprocess_function(examples, tokenizer, input_max_len, output_max_len,
 
     list_contexts = examples['context']
 
+    PREFIX = 'gere '
     if use_answer_input:
-        input_contexts = [f'CONTEXT: {context}</s>ANSWER: {answer}'
-                          for context, answer in zip(list_contexts, list_answers)]
+        input_contexts = [
+            f'CONTEXT: {context}  ANSWER: {answer}'
+            for context, answer in zip(list_contexts, list_answers)]
     else:
-        input_contexts = [f'CONTEXT: {context}' for context in list_contexts]
+        input_contexts = [
+            f'CONTEXT: {context}' for context in list_contexts
+        ]
 
     if output_with_answer:
         output_questions = [
-            f'QUESTION: {question}</s>ANSWER: {answer}'
+            f'QUESTION: {question}  ANSWER: {answer}'
             for question, answer in zip(list_question, list_answers)
         ]
     else:
-        output_questions = [f'QUESTION: {question}' for question in list_question]
+        output_questions = [
+            f'QUESTION: {question}' for question in list_question
+        ]
 
     model_inputs = tokenizer(
         input_contexts,
