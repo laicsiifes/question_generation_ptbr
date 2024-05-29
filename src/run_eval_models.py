@@ -34,8 +34,10 @@ def collate(batch_):
 
 if __name__ == '__main__':
 
-    dataset_name = 'pira'
-    # dataset_name = 'squad_pt_v2'
+    # dataset_name = 'pira'
+    dataset_name = 'squad_pt_v2'
+
+    data_dir = '../data/'
 
     list_models = [
         'ptt5_small',
@@ -46,7 +48,7 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
-    use_answer_input = True
+    use_answer_input = False
     output_with_answer = False
 
     input_max_len = 512
@@ -57,6 +59,7 @@ if __name__ == '__main__':
 
     if output_with_answer:
         output_max_len = 120
+        batch_size = 8
 
     if use_answer_input is True and output_with_answer is True:
         print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
@@ -98,7 +101,7 @@ if __name__ == '__main__':
     input_config = 'in_ctx_ans' if use_answer_input else 'in_ctx'
     output_config = 'out_question_answer' if output_with_answer else 'out_question'
 
-    results_dir = f'../data/results/{dataset_name}/{input_config}_{output_config}'
+    results_dir = os.path.join(f'{data_dir}', 'results', f'{dataset_name}', f'{input_config}_{output_config}')
 
     os.makedirs(results_dir, exist_ok=True)
 
@@ -112,7 +115,8 @@ if __name__ == '__main__':
 
     for model_name in list_models:
 
-        models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/'
+        models_dir = os.path.join(f'{data_dir}', 'models', f'{dataset_name}', f'{model_name}',
+                                  f'{input_config}_{output_config}')
 
         best_model_dir = models_training_dir = os.path.join(models_dir, 'best_model')
 

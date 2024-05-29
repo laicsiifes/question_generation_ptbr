@@ -17,7 +17,6 @@ def preprocess_function(examples, tokenizer, input_max_len, output_max_len,
 
     list_contexts = examples['context']
 
-    PREFIX = 'gere '
     if use_answer_input:
         input_contexts = [
             f'CONTEXT: {context}  ANSWER: {answer}'
@@ -65,7 +64,7 @@ def encode_test_batch(examples, tokenizer, input_max_len: int, use_answer_input:
     list_contexts = examples['context']
 
     if use_answer_input:
-        input_contexts = [f'CONTEXT: {context}</s>ANSWER: {answer}'
+        input_contexts = [f'CONTEXT: {context}  ANSWER: {answer}'
                           for context, answer in zip(list_contexts, list_answers)]
     else:
         input_contexts = [f'CONTEXT: {context}' for context in list_contexts]

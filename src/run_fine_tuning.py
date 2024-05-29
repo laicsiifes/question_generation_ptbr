@@ -13,11 +13,13 @@ warnings.filterwarnings('ignore')
 
 if __name__ == '__main__':
 
-    dataset_name = 'pira'
-    # dataset_name = 'squad_pt_v2'
+    # dataset_name = 'pira'
+    dataset_name = 'squad_pt_v2'
 
-    # model_name = 'ptt5_small'
-    model_name = 'flan_t5_small'
+    data_dir = '../data/'
+
+    model_name = 'ptt5_small'
+    # model_name = 'flan_t5_small'
     # model_name = 'ptt5_base'
     # model_name = 'flan_t5_base'
     # model_name = 'ptt5_large'
@@ -106,7 +108,8 @@ if __name__ == '__main__':
     input_config = 'in_ctx_ans' if use_answer_input else 'in_ctx'
     output_config = 'out_question_answer' if output_with_answer else 'out_question'
 
-    models_dir = f'../data/models/{dataset_name}/{model_name}/{input_config}_{output_config}/'
+    models_dir = os.path.join(f'{data_dir}', 'models', f'{dataset_name}', f'{model_name}',
+                              f'{input_config}_{output_config}')
 
     os.makedirs(models_dir, exist_ok=True)
 
