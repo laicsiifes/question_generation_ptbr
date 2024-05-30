@@ -18,6 +18,7 @@ warnings.filterwarnings('ignore')
 def collate(batch_):
     return {
         'id': [x['id'] for x in batch_],
+        'context': [x['context'] for x in batch_],
         'original_question': [x['question'] for x in batch_],
         'original_answer': [x['answer'] for x in batch_],
         'labels_with_answer': [f"question: {x['question']} answer: {x['answer']}" for x in batch_],
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     ]
 
     use_answer_input = False
-    output_with_answer = False
+    output_with_answer = True
 
     input_max_len = 512
 
@@ -152,8 +153,11 @@ if __name__ == '__main__':
             predict_logits = model.generate(
                 input_ids=batch['input_ids'].to(device),
                 attention_mask=batch['attention_mask'].to(device),
-                num_beams=5, min_length=10,
-                max_length=output_max_len, num_return_sequences=1, no_repeat_ngram_size=3,
+                num_beams=5,
+                min_length=5,
+                max_length=output_max_len,
+                num_return_sequences=1,
+                no_repeat_ngram_size=3,
                 remove_invalid_values=True
             )
 
@@ -162,12 +166,14 @@ if __name__ == '__main__':
 
             generated_questions, generated_answers = convert_predictions(decoded_predictions)
 
-            for (id_example, reference_question, reference_answer, generated_prediction, generated_question,
-                 generated_answer) in (zip(batch['id'], batch['original_question'], batch['original_answer'],
-                                           decoded_predictions, generated_questions, generated_answers)):
+            for (id_example, context, reference_question, reference_answer, generated_prediction, generated_question,
+                 generated_answer) in (zip(batch['id'], batch['context'], batch['original_question'],
+                                           batch['original_answer'], decoded_predictions, generated_questions,
+                                           generated_answers)):
                 all_examples.append(
                     {
                         'id': id_example,
+                        'context': context,
                         'reference_question': reference_question,
                         'reference_answer': reference_answer,
                         'generated_prediction': generated_prediction,

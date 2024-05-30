@@ -25,8 +25,8 @@ if __name__ == '__main__':
     # model_name = 'ptt5_large'
     # model_name = 'flan_t5_large'
 
-    use_answer_input = True
-    output_with_answer = False
+    use_answer_input = False
+    output_with_answer = True
 
     num_epochs = 20
 
