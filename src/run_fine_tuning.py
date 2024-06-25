@@ -69,10 +69,7 @@ if __name__ == '__main__':
         model_checkpoint = 'unicamp-dl/ptt5-base-portuguese-vocab'
     elif model_name == 'ptt5_large':
         model_checkpoint = 'unicamp-dl/ptt5-large-portuguese-vocab'
-        if output_with_answer:
-            batch_size = 4
-        else:
-            batch_size = 4
+        batch_size = 4
     elif model_name == 'flan_t5_small':
         model_checkpoint = 'google/flan-t5-small'
     elif model_name == 'flan_t5_base':
@@ -81,10 +78,7 @@ if __name__ == '__main__':
             batch_size = 8
     elif model_name == 'flan_t5_large':
         model_checkpoint = 'google/flan-t5-large'
-        if output_with_answer:
-            batch_size = 4
-        else:
-            batch_size = 4
+        batch_size = 4
     else:
         print('\nERROR. MODEL OPTION INVALID!')
         exit(-1)
