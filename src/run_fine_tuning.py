@@ -18,11 +18,11 @@ if __name__ == '__main__':
 
     data_dir = '../data/'
 
-    model_name = 'ptt5_small'
+    # model_name = 'ptt5_small'
     # model_name = 'flan_t5_small'
     # model_name = 'ptt5_base'
     # model_name = 'flan_t5_base'
-    # model_name = 'ptt5_large'
+    model_name = 'ptt5_large'
     # model_name = 'flan_t5_large'
 
     use_answer_input = False
@@ -31,8 +31,6 @@ if __name__ == '__main__':
     num_epochs = 20
 
     batch_size = 16
-
-    use_fp16 = False
 
     if use_answer_input is True and output_with_answer is True:
         print(f'\nInvalid Configuration: use_answer_input: {use_answer_input} and {output_with_answer}')
@@ -98,7 +96,7 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    print(f'\nDevice: {device} -- Use FP16: {use_fp16}')
+    print(f'\nDevice: {device}')
 
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint, legacy=False)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint)
@@ -170,7 +168,7 @@ if __name__ == '__main__':
         metric_for_best_model='rougeL',
         greater_is_better=True,
         push_to_hub=False,
-        fp16=use_fp16
+        fp16=False
     )
 
     compute_eval_metrics = prepare_compute_eval_metrics(tokenizer)
@@ -183,13 +181,15 @@ if __name__ == '__main__':
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_eval_metrics,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=10)]
-
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=5)]
     )
 
     print('\nFine-tuning\n')
 
-    trainer.train()
+    if not os.path.exists(models_training_dir) or len(os.listdir(models_training_dir)) == 0:
+        trainer.train()
+    else:
+        trainer.train(resume_from_checkpoint=True)
 
     best_model_dir = models_training_dir = os.path.join(models_dir, 'best_model')
 

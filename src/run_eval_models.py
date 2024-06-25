@@ -27,12 +27,6 @@ def collate(batch_):
     }
 
 
-"""
-    TO DO         
-        Implementar a separação da pergunta e resposta e avaliar individualmente cada.
-        Ver casos dos exemplos com respostas None no corpus
-"""
-
 if __name__ == '__main__':
 
     # dataset_name = 'pira'
@@ -49,8 +43,8 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
-    use_answer_input = False
-    output_with_answer = True
+    use_answer_input = True
+    output_with_answer = False
 
     input_max_len = 512
 
