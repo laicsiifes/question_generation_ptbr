@@ -30,8 +30,8 @@ def collate(batch_):
 if __name__ == '__main__':
 
     # dataset_name = 'pira'
-    dataset_name = 'fairytale_pt_qa'
-    # dataset_name = 'squad_pt_v2'
+    # dataset_name = 'fairytale_pt_qa'
+    dataset_name = 'squad_pt_v2'
 
     data_dir = '../data/'
 
@@ -44,8 +44,8 @@ if __name__ == '__main__':
         'flan_t5_large'
     ]
 
-    use_answer_input = True
-    output_with_answer = False
+    use_answer_input = False
+    output_with_answer = True
 
     input_max_len = 512
 
