@@ -74,7 +74,7 @@ if __name__ == '__main__':
         dataset = dataset.rename_column(original_column_name='id_qa',
                                         new_column_name='id')
     elif dataset_name == 'fairytale_pt_qa':
-        dataset = load_dataset('benjleite/FairytaleQA-translated-ptPT')
+        dataset = load_dataset('benjleite/FairytaleQA-translated-ptBR')
         list_ids = list(range(1, len(dataset['test']) + 1))
         dataset = dataset.rename_column(original_column_name='story_section', new_column_name='context')
         dataset['test'] = dataset['test'].add_column(name='id', column=list_ids)

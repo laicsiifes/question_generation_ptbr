@@ -14,20 +14,20 @@ warnings.filterwarnings('ignore')
 if __name__ == '__main__':
 
     # dataset_name = 'pira'
-    # dataset_name = 'fairytale_pt_qa'
-    dataset_name = 'squad_pt_v2'
+    dataset_name = 'fairytale_pt_qa'
+    # dataset_name = 'squad_pt_v2'
 
     data_dir = '../data/'
 
-    # model_name = 'ptt5_small'
+    model_name = 'ptt5_small'
     # model_name = 'flan_t5_small'
     # model_name = 'ptt5_base'
     # model_name = 'flan_t5_base'
     # model_name = 'ptt5_large'
-    model_name = 'flan_t5_large'
+    # model_name = 'flan_t5_large'
 
     use_answer_input = False
-    output_with_answer = True
+    output_with_answer = False
 
     num_epochs = 20
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         dataset = dataset.rename_column(original_column_name='answer_pt_validate',
                                         new_column_name='answer')
     elif dataset_name == 'fairytale_pt_qa':
-        dataset = load_dataset('benjleite/FairytaleQA-translated-ptPT')
+        dataset = load_dataset('benjleite/FairytaleQA-translated-ptBR')
         dataset = dataset.rename_column(original_column_name='story_section', new_column_name='context')
     elif dataset_name == 'squad_pt_v2':
         dataset = load_dataset('tiagofvb/squad2-pt-br-no-impossible-questions')
