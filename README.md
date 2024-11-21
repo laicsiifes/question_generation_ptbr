@@ -36,7 +36,7 @@ This project implements and evaluates different T5-based models for question gen
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/question_generation_pt.git
+git clone https://github.com/laicsiifes/question_generation_pt.git
 cd question_generation_pt
 ```
 
@@ -129,7 +129,7 @@ Results are saved in CSV format for questions and answers separately.
 
 ## Contributors
 
-...to come
+Tiago Felipe Vivaldi Braga, Hilário Tomaz Alves de Oliveira and Bruno Cardoso Coutinho.
 
 ## Acknowledgments
 
